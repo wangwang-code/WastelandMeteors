@@ -27,6 +27,7 @@
 package com.ezrol.terry.minecraft.wasteland_meteors;
 
 import com.ezrol.terry.minecraft.wasteland_meteors.blocks.*;
+import com.ezrol.terry.minecraft.wasteland_meteors.gen.HbmColtanMeteors;
 import com.ezrol.terry.minecraft.wasteland_meteors.gen.SurfaceMeteors;
 import com.ezrol.terry.minecraft.wasteland_meteors.gen.UndergroundMeteors;
 import com.ezrol.terry.minecraft.wasteland_meteors.gui.MeteorChestGui;
@@ -202,6 +203,7 @@ public class WastelandMeteors implements IGuiHandler {
         //these auto register with ezwastelands
         new SurfaceMeteors(config);
         new UndergroundMeteors(config);
+        new HbmColtanMeteors(config);
     }
 
     public Object getServerGuiElement(int ID, EntityPlayer player, World world, int x, int y, int z) {

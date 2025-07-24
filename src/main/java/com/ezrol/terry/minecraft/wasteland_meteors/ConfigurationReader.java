@@ -57,6 +57,9 @@ public class ConfigurationReader {
     @SuppressWarnings("CanBeFinal")
     private ArrayList<BlockEntry> undergroundBlocks = new ArrayList<>();
     private long totalUndergroundWeight = 0;
+    @SuppressWarnings("CanBeFinal")
+    private ArrayList<BlockEntry> HbmColtanMeteorsBlocks = new ArrayList<>();
+    private long totalHbmColtanMeteorsWeight = 0;
     private Logger log;
 
     /**
@@ -130,6 +133,7 @@ public class ConfigurationReader {
         JsonObject root = new JsonObject();
         JsonArray surface = new JsonArray();
         JsonArray underground = new JsonArray();
+        JsonArray hbmcoltanmeteors = new JsonArray();
 
         surface.add(blockentry("minecraft:cobblestone", "", 80));
         surface.add(blockentry("wasteland_meteors:meteor_block", "", 80));
@@ -188,10 +192,12 @@ public class ConfigurationReader {
         underground.add(blockentry("minecraft:mob_spawner", "",
                 "{SpawnData:{id:\"minecraft:witch\"}}", 2));
 
-
+        hbmcoltanmeteors.add(blockentry("hbm:ore_coltan", "", 1440));
+        hbmcoltanmeteors.add(blockentry("wasteland_meteors:meteor_chest", "facing=east",
+                "{LootTable:\"wasteland_meteors:chests/minecraft_plants\"}", 8));
         root.add("surface", surface);
         root.add("underground", underground);
-
+        root.add("hbmcoltanmeteors", hbmcoltanmeteors);
         try {
             FileWriter f = new FileWriter(jsonpath);
 
@@ -321,6 +327,25 @@ public class ConfigurationReader {
         } else {
             log.warn("No underground meteor block data in JSON config");
         }
+
+        //read hbmcoltanmeteors blocks
+        if (data.has("hbmcoltanmeteors") && data.get("hbmcoltanmeteors").isJsonArray()) {
+            //the hbmcoltanmeteors object seems valid
+            blockArray = data.getAsJsonArray("hbmcoltanmeteors");
+            for (JsonElement e : blockArray) {
+                if (!e.isJsonObject()) {
+                    log.error("Expected block entry object in json got: " + e.toString());
+                    continue;
+                }
+                current = ReadJsonEntry(e.getAsJsonObject());
+                if (current != null) {
+                    totalHbmColtanMeteorsWeight += current.weight;
+                    HbmColtanMeteorsBlocks.add(current);
+                }
+            }
+        } else {
+            log.warn("No underground meteor block data in JSON config");
+        }
     }
 
     public BlockEntry getSurfaceBlock(Random rng) {
@@ -344,6 +369,23 @@ public class ConfigurationReader {
         long idex = rng.nextLong();
         idex = idex % totalUndergroundWeight;
         for (BlockEntry e : undergroundBlocks) {
+            if (idex < e.weight) {
+                return (e);
+            }
+            idex -= e.weight;
+        }
+        //no block found, return the meteorBlock
+        try {
+            return (new BlockEntry(WastelandMeteors.meteorBlock, "", "", 0));
+        } catch (Exception e) {
+            throw (new RuntimeException("Can't make block entry for built in meteor block"));
+        }
+    }
+
+    public BlockEntry getHbmColtanMeteorsBlock(Random rng) {
+        long idex = rng.nextLong();
+        idex = idex % totalHbmColtanMeteorsWeight;
+        for (BlockEntry e : HbmColtanMeteorsBlocks) {
             if (idex < e.weight) {
                 return (e);
             }
